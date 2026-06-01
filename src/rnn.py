@@ -10,6 +10,7 @@ class RNN:
         self.b_h = np.zeros((hidden_dim, 1))
         self.b_y = np.zeros((output_dim, 1))
         
+        self.lr = learning_rate
         self.hidden_dim = hidden_dim
 
     def forward_propagation(self, X_batch):
@@ -18,12 +19,12 @@ class RNN:
         h_current = np.zeros((self.hidden_dim, m))
         
         for t in range(T):
-            X_t = X_batch[:, t, :].T  # Shape: (n_x, m)
+            X_t = X_batch[:, t, :].T  
             Z = np.dot(self.W_xh, X_t) + np.dot(self.W_hh, h_current) + self.b_h
             h_current = np.tanh(Z)
             hidden_states[t] = h_current
             
-        y_pred = np.dot(self.W_hy, h_current) + self.b_y  # Final time step output
+        y_pred = np.dot(self.W_hy, h_current) + self.b_y 
         return y_pred.T, hidden_states
 
     def backward_propagation(self, X_batch, y_batch, y_pred, hidden_states):
@@ -35,42 +36,32 @@ class RNN:
         db_h = np.zeros_like(self.b_h)
         db_y = np.zeros_like(self.b_y)
         
-        # Mean Squared Error derivative: dJ/dy_pred = (y_pred - y_true) / m
-        dy = (y_pred - y_batch.reshape(-1, 1)).T  # Shape: (1, m)
+        dy = (y_pred - y_batch.reshape(-1, 1)).T 
         
-        # Output weights gradient calculation from final step T-1
         h_T = hidden_states[T-1]
         dW_hy += np.dot(dy, h_T.T)
         db_y += np.sum(dy, axis=1, keepdims=True)
         
-        # Initialize the backpropagation vector through the hidden layer
-        dh_next = np.dot(self.W_hy.T, dy)  # Shape: (hidden_dim, m)
+        dh_next = np.dot(self.W_hy.T, dy) 
         
-        # --- THE RECURSIVE TEMPORAL LOOP ---
         for t in reversed(range(T)):
             h_current = hidden_states[t]
+            dtanh = (1 - h_current ** 2) * dh_next 
             
-            # Gradients through the non-linear Tanh barrier
-            dtanh = (1 - h_current ** 2) * dh_next  # Shape: (hidden_dim, m)
-            
-            X_t = X_batch[:, t, :].T  # Shape: (n_x, m)
+            X_raw = X_batch[:, t, :] 
             h_prev = hidden_states[t-1] if t > 0 else np.zeros_like(h_current)
             
-            # Accumulating parameter changes over time
-            dW_xh += np.dot(dtanh, X_t.T)
+            dW_xh += np.dot(dtanh, X_raw) 
             dW_hh += np.dot(dtanh, h_prev.T)
             db_h += np.sum(dtanh, axis=1, keepdims=True)
             
-            # Propagate the error vector back to the previous time step
             dh_next = np.dot(self.W_hh.T, dtanh)
 
-            # --- GRADIENT CLIPPING ---
-            # Capping the stride speed to avoid explosion errors
-            max_norm = 5.0
-            for grad in [dW_xh, dW_hh, dW_hy, db_h, db_y]:
-                norm = np.sqrt[np.sum(grad ** 2)]
-                if norm > max_norm:
-                    grad *= (max_norm / norm)
+        # --- GRADIENT CLIPPING ---
+        max_norm = 5.0
+        for grad in [dW_xh, dW_hh, dW_hy, db_h, db_y]:
+            norm = np.sqrt(np.sum(grad ** 2))
+            if norm > max_norm:
+                grad *= (max_norm / norm)
             
         return dW_xh, dW_hh, dW_hy, db_h, db_y
-    
