@@ -66,7 +66,7 @@ if __name__ == "__main__":
     data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'raw', 'train_FD001.txt')
     
     # Run the compiled optimization engine
-    trained_model, data_mean, data_std = train_network(data_path, epochs=100, batch_size=64, hidden_dim=16, lr=0.0003)
+    trained_model, data_mean, data_std = train_network(data_path, epochs=100, batch_size=32, hidden_dim=16, lr=0.000075)
 
     from utils import save_model_artifacts
 
