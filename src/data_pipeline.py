@@ -11,7 +11,7 @@ def load_and_preprocess(file_path, sequence_length=30, mode='train', mean=None, 
     engine_ids = raw_data[:, 0]
     features = raw_data[:, 2:]
     
-    # Compute or apply scaling factors to completely stop Data Leakage
+    # Compute or apply scaling factors to completely stop the Data Leakage
     if mode == 'train':
         mean = np.mean(features, axis=0)
         std = np.std(features, axis=0)
