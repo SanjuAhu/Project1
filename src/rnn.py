@@ -46,7 +46,7 @@ class RNN:
         
         for t in reversed(range(T)):
             h_current = hidden_states[t]
-            dtanh = (1 - h_current ** 2) * dh_next 
+            dtanh = dh_next * (1 - h_current ** 2)
             
             X_raw = X_batch[:, t, :] 
             h_prev = hidden_states[t-1] if t > 0 else np.zeros_like(h_current)
