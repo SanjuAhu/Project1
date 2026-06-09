@@ -58,6 +58,7 @@ def train_network(file_path, epochs=100, batch_size=64, hidden_dim=32, lr=0.0005
             print(f"Epoch {epoch:03d}/{epochs:03d} | Total Normalized MSE Loss: {total_epoch_loss:.4f}")
         
     print("-" * 60)
+    print(f"Samples: {num_samples}")
     print("[System Complete] Model trained successfully. Weights optimized.")
     return model, mean, std
 
